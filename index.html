@@ -23,10 +23,6 @@
         const EMAILJS_SERVICE_ID  = "YOUR_EMAILJS_SERVICE_ID";
         const EMAILJS_TEMPLATE_ID = "YOUR_EMAILJS_TEMPLATE_ID";
         const WHATSAPP_NUMBER     = "256700000000"; // Replace with Jamie Homes line
-        
-        // Exact Coordinates Blueprint for external fallback mapping
-        const MAPS_LOCATION_URL   = "https://www.google.com/maps/search/?api=1&query=0.3668,32.6105"; 
-        const jamieHomesLocation  = { lat: 0.3668, lng: 32.6105 };
         // ─────────────────────────────────────────────────────────────────────
 
         (function() {
@@ -34,26 +30,6 @@
                 emailjs.init(EMAILJS_PUBLIC_KEY);
             }
         })();
-
-        // Live JavaScript SDK Map Engine Initialization
-        function initMap() {
-            const mapContainer = document.getElementById("map");
-            if (!mapContainer) return;
-
-            const map = new google.maps.Map(mapContainer, {
-                zoom: 16,
-                center: jamieHomesLocation,
-                disableDefaultUI: false,
-                // Simple modern dark theme styling arrays can go here if desired
-            });
-
-            new google.maps.Marker({
-                position: jamieHomesLocation,
-                map: map,
-                title: "Jamie Homes (Apartments) - Kulambiro",
-                animation: google.maps.Animation.DROP
-            });
-        }
     </script>
 
     <style>
@@ -68,7 +44,6 @@
           selectedFilter: 'all',
           activeCurrency: 'USD',
           selectedUnit: null,
-          mapsUrl: MAPS_LOCATION_URL,
           booking: { name: '', whatsapp: '', tourDate: '', tourTime: 'morning', notes: '' },
           isSubmitted: false,
           loading: false,
@@ -255,12 +230,12 @@
     <main class="max-w-6xl mx-auto px-4 py-12">
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             
-            <!-- LEFT COLUMN: MAPS & SUITE LIST -->
+            <!-- LEFT COLUMN: SUITE LIST -->
             <div class="lg:col-span-2 space-y-8">
                 
                 <!-- INTERACTIVE FLOOR SELECTOR -->
                 <div class="bg-[#0F1612] border border-[#14221B] rounded-2xl p-6">
-                    <h3 class="heading font-bold text-white text-sm uppercase tracking-wider text-[#10B981] mb-2">Interactive Building Map</h3>
+                    <h3 class="heading font-bold text-white text-sm uppercase tracking-wider text-[#10B981] mb-2">Interactive Building Layout</h3>
                     <p class="text-xs text-gray-400 mb-6">Select a residential floor plate to survey live availability matrices.</p>
                     
                     <div class="space-y-2 max-w-md mx-auto">
@@ -343,27 +318,6 @@
                                 </div>
                             </div>
                         </template>
-                    </div>
-                </div>
-
-                <!-- LIVE SDK INTERACTIVE MAP EMBED CONTAINER -->
-                <div class="bg-[#0F1612] border border-[#14221B] rounded-2xl p-6">
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
-                        <div>
-                            <h3 class="heading font-bold text-white text-sm uppercase tracking-wider text-[#10B981]">Geographic Location Matrix</h3>
-                            <p class="text-xs text-gray-400">Kulambiro Ring Road, Kampala, Uganda</p>
-                        </div>
-                        <a :href="mapsUrl" target="_blank" class="text-[10px] font-mono uppercase bg-[#10B981]/10 border border-[#10B981]/30 px-2.5 py-1 rounded text-[#10B981] hover:bg-[#10B981] hover:text-[#0A0F0C] transition font-bold self-start sm:self-center">
-                            Open in App 🗺️
-                        </a>
-                    </div>
-                    
-                    <!-- The Interactive Map Viewport -->
-                    <div id="map" class="w-full h-64 bg-[#0A0F0C] rounded-xl border border-[#14221B] overflow-hidden"></div>
-                    
-                    <div class="mt-3 flex items-center justify-between text-[10px] font-mono text-gray-500 px-1">
-                        <span>Lat: 0.3668° N | Lon: 32.6105° E</span>
-                        <span class="text-emerald-500/70">● Live Position Verified</span>
                     </div>
                 </div>
 
@@ -450,9 +404,5 @@
             
         </div>
     </main>
-
-    <!-- GOOGLE MAPS JAVASCRIPT SDK INITIALIZATION SCRIPT -->
-    <!-- Swap 'YOUR_API_KEY' with your valid Google Cloud Maps API key before production deployment -->
-    <script async defer src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap"></script>
 </body>
 </html>
