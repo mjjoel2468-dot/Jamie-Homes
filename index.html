@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jamie Homes - Premium Real Estate Portfolios & Unit Tracker</title>
+
+    <!-- Google Fonts: Syne (Headings) + Plus Jakarta Sans (Body text) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght=700;800&family=Plus+Jakarta+Sans:wght=400;500;600;700&display=swap" rel="stylesheet" />
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Alpine.js -->
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <!-- EmailJS -->
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+
+    <script>
+        // ── CONFIG — Replace these values before deploying to Cloudflare ────
+        const EMAILJS_PUBLIC_KEY  = "YOUR_EMAILJS_PUBLIC_KEY";
+        const EMAILJS_SERVICE_ID  = "YOUR_EMAILJS_SERVICE_ID";
+        const EMAILJS_TEMPLATE_ID = "YOUR_EMAILJS_TEMPLATE_ID";
+        const WHATSAPP_NUMBER     = "256700000000"; // Replace with Jamie Homes line
+        // ─────────────────────────────────────────────────────────────────────
+
+        (function() {
+            if (EMAILJS_PUBLIC_KEY !== "YOUR_EMAILJS_PUBLIC_KEY") {
+                emailjs.init(EMAILJS_PUBLIC_KEY);
+            }
+        })();
+    </script>
+
+    <style>
+        [x-cloak] { display: none !important; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        h1, h2, h3, h4, .heading { font-family: 'Syne', sans-serif; letter-spacing: -0.02em; }
+    </style>
+</head>
+<body class="bg-[#0A0F0C] text-[#E2E8F0] antialiased"
+      x-data="{
+          activeProject: 'crestview',
+          selectedFilter: 'all',
+          activeCurrency: 'USD',
+          selectedUnit: null,
+          booking: { name: '', whatsapp: '', timeframe: 'immediate', notes: '' },
+          isSubmitted: false,
+          loading: false,
+          errorMessage: '',
+
+          exchangeRates: {
+              USD: { rate: 1, symbol: '$', suffix: ' USD' },
+              UGX: { rate: 3675, symbol: 'USh ', suffix: ' UGX' },
+              EUR: { rate: 0.92, symbol: '€', suffix: ' EUR' },
+              GBP: { rate: 0.79, symbol: '£', suffix: ' GBP' }
+          },
+
+          // Real estate developments database matrix
+          projects: {
+              crestview: {
+                  name: 'Crestview Executive Residences',
+                  location: 'Kireka Hill, Kampala',
+                  banner: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=1200&q=80',
+                  description: 'Premium modern structural layouts featuring high-ceiling configurations, energy-conscious thermal engineering, and panoramic city views.',
+                  units: [
+                      { id: 'C-101', type: 'Apartment', beds: '2 Bed', size: '120 sqm', priceUSD: 145000, status: 'available' },
+                      { id: 'C-102', type: 'Apartment', beds: '3 Bed', size: '165 sqm', priceUSD: 185000, status: 'reserved' },
+                      { id: 'C-201', type: 'Penthouse', beds: '4 Bed', size: '240 sqm', priceUSD: 310000, status: 'available' },
+                      { id: 'C-202', type: 'Apartment', beds: '2 Bed', size: '120 sqm', priceUSD: 148000, status: 'sold' }
+                  ]
+              },
+              savannah: {
+                  name: 'Savannah Eco-Villas',
+                  location: 'Lubowa District',
+                  banner: 'https://images.unsplash.com/photo-1613490493576-7fde63acd811?auto=format&fit=crop&w=1200&q=80',
+                  description: 'Exclusive private multi-tier smart homestead assets utilizing advanced structural glass integration and self-sustaining water systems.',
+                  units: [
+                      { id: 'S-01', type: 'Villa', beds: '4 Bed', size: '310 sqm', priceUSD: 420000, status: 'available' },
+                      { id: 'S-02', type: 'Villa', beds: '4 Bed', size: '310 sqm', priceUSD: 425000, status: 'available' },
+                      { id: 'S-03', type: 'Villa', beds: '5 Bed', size: '390 sqm', priceUSD: 540000, status: 'reserved' }
+                  ]
+              }
+          },
+
+          formatCurrency(usdAmount) {
+              const current = this.exchangeRates[this.activeCurrency];
+              const convertedValue = Math.round(usdAmount * current.rate);
+              return current.symbol + convertedValue.toLocaleString() + current.suffix;
+          },
+
+          getFilteredUnits() {
+              const allUnits = this.projects[this.activeProject].units;
+              if (this.selectedFilter === 'all') return allUnits;
+              return allUnits.filter(u => u.status === this.selectedFilter);
+          },
+
+          selectUnitForInquiry(unit) {
+              if (unit.status !== 'available') return;
+              this.selectedUnit = unit;
+              // Smooth scroll to lead form vector
+              document.getElementById('lead-inquiry-engine').scrollIntoView({ behavior: 'smooth' });
+          },
+
+          async handleFormSubmit() {
+              if (!this.booking.name.trim() || !this.booking.whatsapp.trim()) {
+                  this.errorMessage = 'Name and active WhatsApp connection coordinates are required.';
+                  return;
+              }
+
+              this.errorMessage = '';
+              this.loading = true;
+
+              const projectData = this.projects[this.activeProject];
+              const selectedUnitLabel = this.selectedUnit 
+                  ? `${this.selectedUnit.id} (${this.selectedUnit.type} - ${this.selectedUnit.beds})`
+                  : 'General Investment Brief';
+              const allocationValueStr = this.selectedUnit 
+                  ? this.formatCurrency(this.selectedUnit.priceUSD) 
+                  : 'Flexible Allocation Budget';
+
+              const templateParams = {
+                  developer_brand: 'Jamie Homes',
+                  client_name: this.booking.name.trim(),
+                  client_phone: this.booking.whatsapp.trim(),
+                  selected_project: projectData.name,
+                  allocated_unit: selectedUnitLabel,
+                  unit_valuation: allocationValueStr,
+                  investment_timeline: this.booking.timeframe.toUpperCase(),
+                  custom_notes: this.booking.notes.trim() || 'No supplementary directives.'
+              };
+
+              // 1. EmailJS Data Routing
+              try {
+                  if (EMAILJS_SERVICE_ID !== 'YOUR_EMAILJS_SERVICE_ID' && EMAILJS_SERVICE_ID !== '') {
+                      await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams);
+                  } else {
+                      await new Promise(r => setTimeout(r, 800));
+                  }
+              } catch (err) {
+                  console.error('[Jamie Homes] Pipeline failed:', err);
+                  this.errorMessage = 'Routing execution error. Please try again or ping directly via WhatsApp.';
+                  this.loading = false;
+                  return;
+              }
+
+              // 2. WhatsApp Direct Handshake API String
+              const waText = [
+                  '🏢 *New Acquisition File - Jamie Homes* 🥂',
+                  '',
+                  '👤 *Investor:* ' + this.booking.name.trim(),
+                  '📱 *WhatsApp:* ' + this.booking.whatsapp.trim(),
+                  '🏗️ *Project:* ' + projectData.name,
+                  '🔑 *Asset Unit:* ' + selectedUnitLabel,
+                  '💰 *Target Valuation:* ' + allocationValueStr,
+                  '⏱️ *Timeline:* ' + this.booking.timeframe.toUpperCase(),
+                  '',
+                  '💬 *Directives:* ' + (this.booking.notes.trim() || 'Requesting full allocation paperwork.')
+              ].join('\n');
+
+              window.open('https://wa.me/' + WHATSAPP_NUMBER + '?text=' + encodeURIComponent(waText), '_blank');
+
+              this.loading = false;
+              this.isSubmitted = true;
+          }
+      }">
+
+    <!-- GLOBAL BRAND HEADER -->
+    <nav class="sticky top-0 z-50 bg-[#0A0F0C]/90 backdrop-blur-md border-b border-[#14221B]">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="h-9 w-9 rounded-xl bg-[#10B981]/10 border border-[#10B981]/30 flex items-center justify-center text-[#10B981] font-bold tracking-tight">
+                    JH
+                </div>
+                <div>
+                    <span class="heading text-white font-extrabold text-sm tracking-wider block">JAMIE HOMES</span>
+                    <span class="text-[#10B981] text-[9px] font-bold tracking-[0.2em] uppercase block">Structural Excellence</span>
+                </div>
+            </div>
+
+            <!-- Currency Value Matrices Switcher -->
+            <div class="flex items-center gap-1 bg-[#0F1612] border border-[#14221B] p-1 rounded-xl">
+                <template x-for="curr in ['USD', 'UGX', 'EUR', 'GBP']">
+                    <button type="button" @click="activeCurrency = curr"
+                            :class="activeCurrency === curr ? 'bg-[#10B981] text-[#0A0F0C] font-bold' : 'text-gray-400 hover:text-white'"
+                            class="px-2.5 py-1 rounded-lg text-[10px] font-mono tracking-wider transition-all"
+                            x-text="curr">
+                    </button>
+                </template>
+            </div>
+        </div>
+    </nav>
+
+    <!-- DEVELOPER SHOWCASE HERO BANNER -->
+    <div class="relative bg-[#0F1612] overflow-hidden border-b border-[#14221B]">
+        <div class="absolute inset-0">
+            <img :src="projects[activeProject].banner" alt="Jamie Homes Premium Developments" class="w-full h-full object-cover filter brightness-[0.25] transition duration-700 transform scale-100" />
+        </div>
+        <div class="absolute inset-0 bg-gradient-to-t from-[#0A0F0C] via-transparent to-transparent"></div>
+        
+        <div class="relative max-w-6xl mx-auto px-4 py-16 md:py-24">
+            <span class="text-[#10B981] text-xs font-bold uppercase tracking-[0.3em] bg-[#10B981]/10 border border-[#10B981]/20 px-3 py-1 rounded-full">Interactive Asset Matrix</span>
+            
+            <!-- Project Selection Toggles -->
+            <div class="flex flex-wrap gap-2 mt-6 mb-4">
+                <button @click="activeProject = 'crestview'; selectedUnit = null"
+                        :class="activeProject === 'crestview' ? 'bg-[#10B981] text-[#0A0F0C] font-bold' : 'bg-[#0A0F0C]/80 text-white border border-[#14221B]'"
+                        class="px-4 py-2 rounded-xl text-xs uppercase tracking-wider transition">
+                    Crestview Residences
+                </button>
+                <button @click="activeProject = 'savannah'; selectedUnit = null"
+                        :class="activeProject === 'savannah' ? 'bg-[#10B981] text-[#0A0F0C] font-bold' : 'bg-[#0A0F0C]/80 text-white border border-[#14221B]'"
+                        class="px-4 py-2 rounded-xl text-xs uppercase tracking-wider transition">
+                    Savannah Eco-Villas
+                </button>
+            </div>
+
+            <h1 class="heading text-3xl md:text-5xl font-black text-white max-w-3xl leading-tight" x-text="projects[activeProject].name"></h1>
+            <p class="text-xs text-gray-400 mt-2 font-mono flex items-center gap-1.5">
+                <svg class="h-3.5 w-3.5 text-[#10B981]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                <span x-text="projects[activeProject].location"></span>
+            </p>
+            <p class="text-sm text-gray-400 mt-4 max-w-2xl leading-relaxed" x-text="projects[activeProject].description"></p>
+        </div>
+    </div>
+
+    <!-- MAIN GRID CONTAINER -->
+    <main class="max-w-6xl mx-auto px-4 py-12">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <!-- LEFT COLUMN: REAL-TIME INVENTORY TRACKER -->
+            <div class="lg:col-span-2 space-y-4">
+                <div class="flex items-center justify-between border-b border-[#14221B] pb-4">
+                    <h3 class="heading font-bold text-white text-base tracking-wide uppercase">Unit Allocation Status</h3>
+                    
+                    <!-- Availability Filters -->
+                    <div class="flex gap-1 bg-[#0F1612] border border-[#14221B] p-0.5 rounded-lg text-[10px]">
+                        <button @click="selectedFilter = 'all'" :class="selectedFilter === 'all' ? 'bg-[#14221B] text-[#10B981] font-bold' : 'text-gray-400'" class="px-2 py-1 rounded">ALL</button>
+                        <button @click="selectedFilter = 'available'" :class="selectedFilter === 'available' ? 'bg-[#14221B] text-[#10B981] font-bold' : 'text-gray-400'" class="px-2 py-1 rounded">AVAILABLE</button>
+                        <button @click="selectedFilter = 'reserved'" :class="selectedFilter === 'reserved' ? 'bg-[#14221B] text-[#10B981] font-bold' : 'text-gray-400'" class="px-2 py-1 rounded">RESERVED</button>
+                    </div>
+                </div>
+
+                <!-- DYNAMIC INVENTORY LIST -->
+                <div class="space-y-3">
+                    <template x-for="unit in getFilteredUnits()" :key="unit.id">
+                        <div :class="selectedUnit?.id === unit.id ? 'border-[#10B981] bg-[#10B981]/5' : 'border-[#14221B] bg-[#0F1612]'"
+                             @click="selectUnitForInquiry(unit)"
+                             :class="unit.status === 'available' ? 'cursor-pointer hover:border-gray-700' : 'opacity-60 cursor-not-allowed'"
+                             class="p-4 rounded-xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            
+                            <div class="flex items-start gap-4">
+                                <!-- Status Marker Block -->
+                                <div class="w-2.5 h-2.5 rounded-full mt-1.5 flex-shrink-0"
+                                     :class="{
+                                         'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]': unit.status === 'available',
+                                         'bg-amber-500': unit.status === 'reserved',
+                                         'bg-rose-500': unit.status === 'sold'
+                                     }">
+                                </div>
+                                <div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="font-mono text-xs font-bold text-white tracking-wider bg-[#14221B] px-2 py-0.5 rounded" x-text="unit.id"></span>
+                                        <span class="text-xs font-semibold text-gray-300" x-text="unit.type + ' — ' + unit.beds"></span>
+                                    </div>
+                                    <div class="flex gap-3 text-[11px] text-gray-500 mt-1 font-mono">
+                                        <span>SIZE: <strong class="text-gray-400" x-text="unit.size"></strong></span>
+                                        <span class="uppercase">STATUS: 
+                                            <strong :class="{ 'text-emerald-400': unit.status === 'available', 'text-amber-400': unit.status === 'reserved', 'text-rose-400': unit.status === 'sold' }" x-text="unit.status"></strong>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Pricing Configuration Area -->
+                            <div class="sm:text-right flex sm:flex-col justify-between items-center sm:items-end border-t sm:border-0 border-[#14221B]/60 pt-2 sm:pt-0">
+                                <span class="text-[10px] uppercase font-mono text-gray-500 tracking-wider">Asset Valuation</span>
+                                <span class="text-sm font-bold font-mono text-[#10B981]" x-text="formatCurrency(unit.priceUSD)"></span>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+
+            <!-- RIGHT COLUMN: HIGH-INTENT LEAD INQUIRY ENGINE -->
+            <div id="lead-inquiry-engine" class="space-y-6">
+                <div class="bg-[#0F1612] border border-[#14221B] rounded-2xl p-6 relative overflow-hidden">
+                    <h3 class="heading text-white font-bold text-sm uppercase tracking-wider mb-2">Acquisition Pipeline</h3>
+                    <p class="text-xs text-gray-400 mb-4">Lock in real-time unit data or request a comprehensive structural prospectus package.</p>
+                    
+                    <!-- Selected Unit Profile Dynamic Notice -->
+                    <div class="bg-[#0A0F0C] border border-[#14221B] rounded-xl p-3 mb-4 text-xs">
+                        <span class="text-[10px] font-mono uppercase text-gray-500 tracking-wider block">Target Portfolio Allocation</span>
+                        <div class="mt-1 flex items-center justify-between">
+                            <span class="font-bold text-white" x-text="selectedUnit ? 'Unit Asset ' + selectedUnit.id : 'General Portfolio Briefing'"></span>
+                            <span class="font-mono text-[#10B981] font-semibold" x-text="selectedUnit ? formatCurrency(selectedUnit.priceUSD) : 'Flexible Capital'"></span>
+                        </div>
+                        <p x-show="selectedUnit" class="text-[10px] text-gray-400 mt-1.5" x-cloak>
+                            Clicking submit will pin this exact unit to your buyer record and send the configuration directly to our office.
+                        </p>
+                    </div>
+
+                    <!-- Pipeline Form -->
+                    <form x-show="!isSubmitted" @submit.prevent="handleFormSubmit()" class="space-y-3">
+                        <div>
+                            <label for="investor_name" class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Your Full Name</label>
+                            <input type="text" id="investor_name" required x-model="booking.name" placeholder="Hon. Arthur Mason"
+                                   class="w-full bg-[#0A0F0C] border border-[#14221B] rounded-xl p-3 text-xs text-white placeholder-gray-700 focus:outline-none focus:border-[#10B981]" />
+                        </div>
+
+                        <div>
+                            <label for="investor_phone" class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Active WhatsApp Connection</label>
+                            <input type="tel" id="investor_phone" required x-model="booking.whatsapp" placeholder="+256 700 000000"
+                                   class="w-full bg-[#0A0F0C] border border-[#14221B] rounded-xl p-3 text-xs text-white placeholder-gray-700 focus:outline-none focus:border-[#10B981]" />
+                        </div>
+
+                        <div>
+                            <label for="investment_timeframe" class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Capital Deployment Horizon</label>
+                            <select id="investment_timeframe" x-model="booking.timeframe"
+                                    class="w-full bg-[#0A0F0C] border border-[#14221B] rounded-xl p-3 text-xs text-white focus:outline-none focus:border-[#10B981]">
+                                <option value="immediate">Immediate Allocation (< 30 Days)</option>
+                                <option value="quarterly">Within This Quarter</option>
+                                <option value="speculative">Exploring Capital Layout Options</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label for="investor_notes" class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Supplementary Directives (Optional)</label>
+                            <textarea id="investor_notes" x-model="booking.notes" rows="3" placeholder="Financing terms required, corporate entity purchase details..."
+                                      class="w-full bg-[#0A0F0C] border border-[#14221B] rounded-xl p-3 text-xs text-white placeholder-gray-700 focus:outline-none focus:border-[#10B981] resize-none"></textarea>
+                        </div>
+
+                        <p x-show="errorMessage" x-cloak x-text="errorMessage" class="text-xs text-rose-400 bg-rose-500/10 border border-rose-500/20 rounded-lg p-2"></p>
+
+                        <button type="submit" :disabled="loading"
+                                class="w-full bg-[#10B981] hover:bg-[#059669] text-[#0A0F0C] font-bold py-3 rounded-xl tracking-widest text-[10px] uppercase transition flex items-center justify-center gap-2">
+                            <span x-show="!loading">Initialize Allocation Protocol</span>
+                            <span x-show="loading" class="flex items-center gap-2" x-cloak>
+                                <svg class="animate-spin h-3.5 w-3.5" viewBox="0 0 24 24" fill="none">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                                </svg>
+                                Routing Acquisition File...
+                            </span>
+                        </button>
+                    </form>
+
+                    <!-- Success State Screen -->
+                    <div x-show="isSubmitted" class="text-center py-6" x-cloak>
+                        <div class="h-10 w-10 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded-full flex items-center justify-center mx-auto mb-3">✓</div>
+                        <h4 class="heading text-white font-bold text-sm">Asset Secured Securely</h4>
+                        <p class="text-xs text-gray-400 mt-2 px-2">
+                            The portfolio parameters are securely locked into your client profile. Our primary representative is initiating direct contact to present closing structures.
+                        </p>
+                        <button @click="isSubmitted = false; selectedUnit = null; booking = { name: '', whatsapp: '', timeframe: 'immediate', notes: '' }"
+                                class="mt-4 text-[10px] uppercase font-bold tracking-widest text-[#10B981] hover:text-white transition">
+                            Map Alternative Property Asset
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+    </main>
+</body>
+</html>
