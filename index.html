@@ -23,6 +23,9 @@
         const EMAILJS_SERVICE_ID  = "YOUR_EMAILJS_SERVICE_ID";
         const EMAILJS_TEMPLATE_ID = "YOUR_EMAILJS_TEMPLATE_ID";
         const WHATSAPP_NUMBER     = "256700000000"; // Replace with Jamie Homes line
+        
+        // Google Maps URL configuration
+        const MAPS_LOCATION_URL   = "https://maps.google.com/?q=Kireka+Hill+Kampala+Uganda"; 
         // ─────────────────────────────────────────────────────────────────────
 
         (function() {
@@ -44,6 +47,7 @@
           selectedFilter: 'all',
           activeCurrency: 'USD',
           selectedUnit: null,
+          mapsUrl: MAPS_LOCATION_URL,
           booking: { name: '', whatsapp: '', tourDate: '', tourTime: 'morning', notes: '' },
           isSubmitted: false,
           loading: false,
@@ -56,7 +60,6 @@
               GBP: { rate: 0.79, symbol: '£', suffix: ' GBP' }
           },
 
-          // Fully Furnished & Serviced Apartments Matrix mapped by Floors
           buildingInventory: {
               '3': {
                   floorName: '3rd Floor - Executive Penthouses',
@@ -128,7 +131,6 @@
                   custom_notes: this.booking.notes.trim() || 'No specific requests.'
               };
 
-              // 1. Pipeline data via EmailJS
               try {
                   if (EMAILJS_SERVICE_ID !== 'YOUR_EMAILJS_SERVICE_ID' && EMAILJS_SERVICE_ID !== '') {
                       await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams);
@@ -142,7 +144,6 @@
                   return;
               }
 
-              // 2. Direct Instant WhatsApp Handshake API
               const waText = [
                   '🏢 *Private Site Tour Request - Jamie Homes* 🥂',
                   '',
@@ -176,7 +177,7 @@
                 </div>
             </div>
 
-            <!-- Currency Value Matrices Switcher -->
+            <!-- Currency Selector -->
             <div class="flex items-center gap-1 bg-[#0F1612] border border-[#14221B] p-1 rounded-xl">
                 <template x-for="curr in ['USD', 'UGX', 'EUR', 'GBP']">
                     <button type="button" @click="activeCurrency = curr"
@@ -189,7 +190,7 @@
         </div>
     </nav>
 
-    <!-- DEVELOPER SHOWCASE HERO BANNER -->
+    <!-- HERO BANNER -->
     <div class="relative bg-[#0F1612] overflow-hidden border-b border-[#14221B]">
         <div class="absolute inset-0">
             <img src="https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=1200&q=80" alt="Jamie Homes Contemporary Apartments" class="w-full h-full object-cover filter brightness-[0.25]" />
@@ -229,19 +230,18 @@
         </div>
     </section>
 
-    <!-- MAIN BUILDING MAP & TRACKER ENGINE -->
+    <!-- MAIN INTERACTIVE INTERFACE GRID -->
     <main class="max-w-6xl mx-auto px-4 py-12">
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             
-            <!-- LEFT COLUMN: INTERACTIVE MAP & FLOORS -->
+            <!-- LEFT COLUMN: MAPS & SUITE LIST -->
             <div class="lg:col-span-2 space-y-8">
                 
-                <!-- INTERACTIVE BUILDING MAP (FLOOR SELECTOR) -->
+                <!-- INTERACTIVE FLOOR SELECTOR -->
                 <div class="bg-[#0F1612] border border-[#14221B] rounded-2xl p-6">
                     <h3 class="heading font-bold text-white text-sm uppercase tracking-wider text-[#10B981] mb-2">Interactive Building Map</h3>
                     <p class="text-xs text-gray-400 mb-6">Select a residential floor plate to survey live availability matrices.</p>
                     
-                    <!-- Vertical Stack Schematic Visual -->
                     <div class="space-y-2 max-w-md mx-auto">
                         <button @click="activeFloor = '3'; selectedUnit = null"
                                 :class="activeFloor === '3' ? 'border-[#10B981] bg-[#10B981]/10 text-[#10B981]' : 'border-[#14221B] bg-[#0A0F0C] text-gray-400'"
@@ -264,7 +264,7 @@
                     </div>
                 </div>
 
-                <!-- DYNAMIC INVENTORY LIST FOR SELECTED FLOOR -->
+                <!-- DYNAMIC INVENTORY LIST -->
                 <div class="space-y-4">
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#14221B] pb-4">
                         <div>
@@ -272,20 +272,23 @@
                             <p class="text-xs text-gray-500 mt-0.5">Click any available suite layout card to target for your site tour.</p>
                         </div>
                         
-                        <!-- Availability Filters -->
                         <div class="flex gap-1 bg-[#0F1612] border border-[#14221B] p-0.5 rounded-lg text-[10px] self-start sm:self-center">
                             <button @click="selectedFilter = 'all'" :class="selectedFilter === 'all' ? 'bg-[#14221B] text-[#10B981] font-bold' : 'text-gray-400'" class="px-2 py-1 rounded">ALL SUITES</button>
                             <button @click="selectedFilter = 'available'" :class="selectedFilter === 'available' ? 'bg-[#14221B] text-[#10B981] font-bold' : 'text-gray-400'" class="px-2 py-1 rounded">AVAILABLE</button>
-                            <button @click="selectedFilter = 'reserved'" :class="selectedFilter === 'reserved' ? 'bg-[#14221B] text-[#10B981] font-bold' : 'text-gray-400'" class="px-2 py-1 rounded">RESERVED</button>
+                            <button @click="selectedFilter = 'occupied'" :class="selectedFilter === 'occupied' ? 'bg-[#14221B] text-[#10B981] font-bold' : 'text-gray-400'" class="px-2 py-1 rounded">OCCUPIED</button>
                         </div>
                     </div>
 
-                    <!-- Cards -->
                     <div class="space-y-3">
                         <template x-for="unit in getFilteredUnits()" :key="unit.id">
-                            <div :class="selectedUnit?.id === unit.id ? 'border-[#10B981] bg-[#10B981]/5' : 'border-[#14221B] bg-[#0F1612]'"
+                            <div x-show="selectedFilter === 'all' || (selectedFilter === 'available' && unit.status === 'available') || (selectedFilter === 'occupied' && (unit.status === 'reserved' || unit.status === 'sold'))"
+                                 :class="{
+                                     'border-[#10B981] bg-[#10B981]/5': selectedUnit?.id === unit.id,
+                                     'border-[#14221B] bg-[#0F1612]': selectedUnit?.id !== unit.id,
+                                     'cursor-pointer hover:border-gray-700': unit.status === 'available',
+                                     'opacity-50 cursor-not-allowed': unit.status !== 'available'
+                                 }"
                                  @click="selectUnitForTour(unit)"
-                                 :class="unit.status === 'available' ? 'cursor-pointer hover:border-gray-700' : 'opacity-60 cursor-not-allowed'"
                                  class="p-4 rounded-xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                                 
                                 <div class="space-y-2">
@@ -293,8 +296,7 @@
                                         <div class="w-2.5 h-2.5 rounded-full mt-1.5 flex-shrink-0"
                                              :class="{
                                                  'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]': unit.status === 'available',
-                                                 'bg-amber-500': unit.status === 'reserved',
-                                                 'bg-rose-500': unit.status === 'sold'
+                                                 'bg-amber-500': unit.status === 'reserved' || unit.status === 'sold'
                                              }">
                                         </div>
                                         <div>
@@ -302,13 +304,17 @@
                                                 <span class="font-mono text-xs font-bold text-white tracking-wider bg-[#14221B] px-2 py-0.5 rounded" x-text="unit.id"></span>
                                                 <span class="text-xs font-semibold text-gray-200" x-text="unit.type + ' — ' + unit.beds"></span>
                                                 <span class="text-[10px] font-mono text-gray-500" x-text="'(' + unit.size + ')'"></span>
+                                                
+                                                <!-- OCCUPIED BADGE VECTOR -->
+                                                <template x-if="unit.status !== 'available'">
+                                                    <span class="text-[9px] font-mono bg-amber-500/10 border border-amber-500/30 text-amber-500 px-1.5 py-0.5 rounded font-bold uppercase tracking-wider">OCCUPIED</span>
+                                                </template>
                                             </div>
                                             <p class="text-[11px] text-gray-400 mt-1" x-text="unit.features"></p>
                                         </div>
                                     </div>
                                 </div>
 
-                                <!-- Value Component -->
                                 <div class="sm:text-right flex sm:flex-col justify-between items-center sm:items-end border-t sm:border-0 border-[#14221B]/60 pt-2 sm:pt-0 flex-shrink-0">
                                     <span class="text-[9px] uppercase font-mono text-gray-500 tracking-wider">Premium Target Index</span>
                                     <span class="text-xs font-bold font-mono text-[#10B981]">
@@ -320,35 +326,36 @@
                     </div>
                 </div>
 
-                <!-- GEOGRAPHIC LOCATION LOCATION VECTOR -->
+                <!-- GEOGRAPHIC LOCATION NODE WITH EXTERNAL GOOGLE MAPS ROUTING -->
                 <div class="bg-[#0F1612] border border-[#14221B] rounded-2xl p-6">
                     <h3 class="heading font-bold text-white text-sm uppercase tracking-wider text-[#10B981] mb-2">Location Coordinates</h3>
-                    <p class="text-xs text-gray-400 mb-4">Strategically positioned inside Kampala's elite, premium short-term rental corridor ensuring high-density international corporate occupancy profiles.</p>
+                    <p class="text-xs text-gray-400 mb-4">Strategically positioned inside Kampala's elite short-term rental corridor. Click the schematic model below to route coordinates directly via Google Maps navigation vectors.</p>
                     
-                    <!-- Clean Minimalist Geometric Map Blueprint Placeholder -->
-                    <div class="w-full h-44 bg-[#0A0F0C] rounded-xl border border-[#14221B] relative overflow-hidden flex items-center justify-center text-center p-4">
+                    <a :href="mapsUrl" target="_blank" class="block w-full h-44 bg-[#0A0F0C] rounded-xl border border-[#14221B] relative overflow-hidden group transition-all duration-300 hover:border-[#10B981]/40">
                         <div class="absolute inset-0 opacity-10 bg-[radial-gradient(#10B981_1px,transparent_1px)] [background-size:16px_16px]"></div>
-                        <div class="relative z-10">
-                            <span class="text-[10px] font-mono uppercase bg-[#10B981]/10 border border-[#10B981]/30 px-2 py-1 rounded text-[#10B981]">Kampala Prime Central District</span>
-                            <p class="text-xs font-semibold text-white mt-2">Jamie Homes Luxury Tower Vector</p>
-                            <p class="text-[11px] text-gray-500 mt-0.5">High-Accessibility Logistics Corridor</p>
+                        
+                        <div class="absolute inset-0 bg-[#10B981]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        
+                        <div class="relative z-10 w-full h-full flex flex-col items-center justify-center text-center p-4">
+                            <span class="text-[10px] font-mono uppercase bg-[#10B981]/10 border border-[#10B981]/30 px-2 py-1 rounded text-[#10B981] transition group-hover:bg-[#10B981] group-hover:text-[#0A0F0C] font-bold">
+                                🗺️ Launch Google Maps Navigation
+                            </span>
+                            <p class="text-xs font-semibold text-white mt-3">Jamie Homes Luxury Tower Vector</p>
+                            <p class="text-[11px] text-gray-500 mt-0.5">Kireka Hill Corridor, Kampala, Uganda</p>
                         </div>
-                    </div>
+                    </a>
                 </div>
 
             </div>
 
-            <!-- RIGHT COLUMN: SCHEDULE PRIVATE SITE TOUR ENGINE -->
+            <!-- RIGHT COLUMN: TOUR SCHEDULE ENGINE -->
             <div id="tour-scheduler-engine" class="space-y-6">
                 <div class="bg-[#0F1612] border border-[#14221B] rounded-2xl p-6 relative overflow-hidden">
-                    <div class="absolute top-0 right-0 bg-[#10B981]/10 text-[#10B981] text-[9px] tracking-widest uppercase font-bold px-3 py-1 rounded-bl-lg">
-                        Private Access
-                    </div>
+                    <div class="absolute top-0 right-0 bg-[#10B981]/10 text-[#10B981] text-[9px] tracking-widest uppercase font-bold px-3 py-1 rounded-bl-lg">Private Access</div>
                     
                     <h3 class="heading text-white font-bold text-sm uppercase tracking-wider mb-2">Schedule Private Site Tour</h3>
-                    <p class="text-xs text-gray-400 mb-4">Book an exclusive structural walkthrough of the multi-unit building and verify open-plan design finishes directly.</p>
+                    <p class="text-xs text-gray-400 mb-4">Book an exclusive walkthrough of the multi-unit building and verify design finishes directly.</p>
                     
-                    <!-- Target Space Display Dynamic Matrix -->
                     <div class="bg-[#0A0F0C] border border-[#14221B] rounded-xl p-3 mb-4 text-xs">
                         <span class="text-[10px] font-mono uppercase text-gray-500 tracking-wider block">Selected Space Allocation</span>
                         <div class="mt-1 flex items-center justify-between flex-wrap gap-2">
@@ -357,7 +364,6 @@
                         </div>
                     </div>
 
-                    <!-- Scheduler Form Pipeline -->
                     <form x-show="!isSubmitted" @submit.prevent="handleTourSchedule()" class="space-y-3">
                         <div>
                             <label for="tour_name" class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Prospect Identity Name</label>
@@ -409,13 +415,10 @@
                         </button>
                     </form>
 
-                    <!-- Verification State Screen -->
                     <div x-show="isSubmitted" class="text-center py-6" x-cloak>
                         <div class="h-10 w-10 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded-full flex items-center justify-center mx-auto mb-3">✓</div>
                         <h4 class="heading text-white font-bold text-sm">Site Walkthrough Synced</h4>
-                        <p class="text-xs text-gray-400 mt-2 px-2">
-                            Your walkthrough file is matched to our property manager. The WhatsApp handshake link will now instantly establish your direct booking entry.
-                        </p>
+                        <p class="text-xs text-gray-400 mt-2 px-2">Your walkthrough file is matched to our property manager.</p>
                         <button @click="isSubmitted = false; selectedUnit = null; booking = { name: '', whatsapp: '', tourDate: '', tourTime: 'morning', notes: '' }"
                                 class="mt-4 text-[10px] uppercase font-bold tracking-widest text-[#10B981] hover:text-white transition">
                             Schedule Alternative Tour Vector
