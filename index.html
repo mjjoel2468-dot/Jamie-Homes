@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jamie Homes - Premium Real Estate Portfolios & Unit Tracker</title>
+    <title>Jamie Homes - Contemporary Serviced Apartments & Unit Tracker</title>
 
     <!-- Google Fonts: Syne (Headings) + Plus Jakarta Sans (Body text) -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -40,11 +40,11 @@
 </head>
 <body class="bg-[#0A0F0C] text-[#E2E8F0] antialiased"
       x-data="{
-          activeProject: 'crestview',
+          activeFloor: '3',
           selectedFilter: 'all',
           activeCurrency: 'USD',
           selectedUnit: null,
-          booking: { name: '', whatsapp: '', timeframe: 'immediate', notes: '' },
+          booking: { name: '', whatsapp: '', tourDate: '', tourTime: 'morning', notes: '' },
           isSubmitted: false,
           loading: false,
           errorMessage: '',
@@ -56,29 +56,29 @@
               GBP: { rate: 0.79, symbol: '£', suffix: ' GBP' }
           },
 
-          // Real estate developments database matrix
-          projects: {
-              crestview: {
-                  name: 'Crestview Executive Residences',
-                  location: 'Kireka Hill, Kampala',
-                  banner: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=1200&q=80',
-                  description: 'Premium modern structural layouts featuring high-ceiling configurations, energy-conscious thermal engineering, and panoramic city views.',
+          // Fully Furnished & Serviced Apartments Matrix mapped by Floors
+          buildingInventory: {
+              '3': {
+                  floorName: '3rd Floor - Executive Penthouses',
                   units: [
-                      { id: 'C-101', type: 'Apartment', beds: '2 Bed', size: '120 sqm', priceUSD: 145000, status: 'available' },
-                      { id: 'C-102', type: 'Apartment', beds: '3 Bed', size: '165 sqm', priceUSD: 185000, status: 'reserved' },
-                      { id: 'C-201', type: 'Penthouse', beds: '4 Bed', size: '240 sqm', priceUSD: 310000, status: 'available' },
-                      { id: 'C-202', type: 'Apartment', beds: '2 Bed', size: '120 sqm', priceUSD: 148000, status: 'sold' }
+                      { id: 'Suite-301', type: 'Premium Serviced Studio', beds: '1 Bed', size: '65 sqm', priceUSD: 120, billing: 'night', status: 'available', features: 'Private Balcony, Panoramic City View, Open-Plan Kitchen' },
+                      { id: 'Suite-302', type: 'Luxury Serviced Apartment', beds: '2 Bed', size: '115 sqm', priceUSD: 190, billing: 'night', status: 'available', features: 'Wrap-around Balcony, Fully Equipped Modern Kitchen' },
+                      { id: 'Suite-303', type: 'Executive Suite', beds: '2 Bed', size: '120 sqm', priceUSD: 210, billing: 'night', status: 'reserved', features: 'Floor-to-ceiling Windows, Marble Island, Smart Automation' }
                   ]
               },
-              savannah: {
-                  name: 'Savannah Eco-Villas',
-                  location: 'Lubowa District',
-                  banner: 'https://images.unsplash.com/photo-1613490493576-7fde63acd811?auto=format&fit=crop&w=1200&q=80',
-                  description: 'Exclusive private multi-tier smart homestead assets utilizing advanced structural glass integration and self-sustaining water systems.',
+              '2': {
+                  floorName: '2nd Floor - Premium Serviced Units',
                   units: [
-                      { id: 'S-01', type: 'Villa', beds: '4 Bed', size: '310 sqm', priceUSD: 420000, status: 'available' },
-                      { id: 'S-02', type: 'Villa', beds: '4 Bed', size: '310 sqm', priceUSD: 425000, status: 'available' },
-                      { id: 'S-03', type: 'Villa', beds: '5 Bed', size: '390 sqm', priceUSD: 540000, status: 'reserved' }
+                      { id: 'Suite-201', type: 'Serviced Apartment', beds: '2 Bed', size: '110 sqm', priceUSD: 160, billing: 'night', status: 'available', features: 'Open-Plan Living, Private Balcony, High-End Linens' },
+                      { id: 'Suite-202', type: 'Contemporary Studio', beds: '1 Bed', size: '60 sqm', priceUSD: 110, billing: 'night', status: 'sold', features: 'Minimalist Layout, Integrated Appliances' },
+                      { id: 'Suite-203', type: 'Serviced Apartment', beds: '2 Bed', size: '110 sqm', priceUSD: 165, billing: 'night', status: 'available', features: 'Dedicated Workspace, Sunset Balcony View' }
+                  ]
+              },
+              '1': {
+                  floorName: '1st Floor - Contemporary Residences',
+                  units: [
+                      { id: 'Suite-101', type: 'Courtyard Studio', beds: '1 Bed', size: '58 sqm', priceUSD: 95, billing: 'night', status: 'available', features: 'Direct Patio Access, Modern Fitted Kitchenette' },
+                      { id: 'Suite-102', type: 'Serviced Apartment', beds: '2 Bed', size: '105 sqm', priceUSD: 140, billing: 'night', status: 'reserved', features: 'Open-Concept Lounge, Walk-in Rain Shower' }
                   ]
               }
           },
@@ -90,47 +90,45 @@
           },
 
           getFilteredUnits() {
-              const allUnits = this.projects[this.activeProject].units;
-              if (this.selectedFilter === 'all') return allUnits;
-              return allUnits.filter(u => u.status === this.selectedFilter);
+              const floorUnits = this.buildingInventory[this.activeFloor].units;
+              if (this.selectedFilter === 'all') return floorUnits;
+              return floorUnits.filter(u => u.status === this.selectedFilter);
           },
 
-          selectUnitForInquiry(unit) {
+          selectUnitForTour(unit) {
               if (unit.status !== 'available') return;
               this.selectedUnit = unit;
-              // Smooth scroll to lead form vector
-              document.getElementById('lead-inquiry-engine').scrollIntoView({ behavior: 'smooth' });
+              document.getElementById('tour-scheduler-engine').scrollIntoView({ behavior: 'smooth' });
           },
 
-          async handleFormSubmit() {
-              if (!this.booking.name.trim() || !this.booking.whatsapp.trim()) {
-                  this.errorMessage = 'Name and active WhatsApp connection coordinates are required.';
+          async handleTourSchedule() {
+              if (!this.booking.name.trim() || !this.booking.whatsapp.trim() || !this.booking.tourDate) {
+                  this.errorMessage = 'Name, active WhatsApp number, and target Tour Date are required.';
                   return;
               }
 
               this.errorMessage = '';
               this.loading = true;
 
-              const projectData = this.projects[this.activeProject];
-              const selectedUnitLabel = this.selectedUnit 
-                  ? `${this.selectedUnit.id} (${this.selectedUnit.type} - ${this.selectedUnit.beds})`
-                  : 'General Investment Brief';
-              const allocationValueStr = this.selectedUnit 
-                  ? this.formatCurrency(this.selectedUnit.priceUSD) 
-                  : 'Flexible Allocation Budget';
+              const targetUnitLabel = this.selectedUnit 
+                  ? `Suite ${this.selectedUnit.id} (${this.selectedUnit.type})`
+                  : 'General Building Portfolio Tour';
+              const premiumRateStr = this.selectedUnit 
+                  ? `${this.formatCurrency(this.selectedUnit.priceUSD)} / ${this.selectedUnit.billing}`
+                  : 'Variable Rate Structures';
 
               const templateParams = {
                   developer_brand: 'Jamie Homes',
                   client_name: this.booking.name.trim(),
                   client_phone: this.booking.whatsapp.trim(),
-                  selected_project: projectData.name,
-                  allocated_unit: selectedUnitLabel,
-                  unit_valuation: allocationValueStr,
-                  investment_timeline: this.booking.timeframe.toUpperCase(),
-                  custom_notes: this.booking.notes.trim() || 'No supplementary directives.'
+                  target_unit: targetUnitLabel,
+                  unit_valuation: premiumRateStr,
+                  tour_date: this.booking.tourDate,
+                  tour_time: this.booking.tourTime.toUpperCase(),
+                  custom_notes: this.booking.notes.trim() || 'No specific requests.'
               };
 
-              // 1. EmailJS Data Routing
+              // 1. Pipeline data via EmailJS
               try {
                   if (EMAILJS_SERVICE_ID !== 'YOUR_EMAILJS_SERVICE_ID' && EMAILJS_SERVICE_ID !== '') {
                       await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams);
@@ -138,24 +136,24 @@
                       await new Promise(r => setTimeout(r, 800));
                   }
               } catch (err) {
-                  console.error('[Jamie Homes] Pipeline failed:', err);
-                  this.errorMessage = 'Routing execution error. Please try again or ping directly via WhatsApp.';
+                  console.error('[Jamie Homes] Booking error:', err);
+                  this.errorMessage = 'Routing handshake failed. Please apply directly via WhatsApp link.';
                   this.loading = false;
                   return;
               }
 
-              // 2. WhatsApp Direct Handshake API String
+              // 2. Direct Instant WhatsApp Handshake API
               const waText = [
-                  '🏢 *New Acquisition File - Jamie Homes* 🥂',
+                  '🏢 *Private Site Tour Request - Jamie Homes* 🥂',
                   '',
-                  '👤 *Investor:* ' + this.booking.name.trim(),
-                  '📱 *WhatsApp:* ' + this.booking.whatsapp.trim(),
-                  '🏗️ *Project:* ' + projectData.name,
-                  '🔑 *Asset Unit:* ' + selectedUnitLabel,
-                  '💰 *Target Valuation:* ' + allocationValueStr,
-                  '⏱️ *Timeline:* ' + this.booking.timeframe.toUpperCase(),
+                  '👤 *Prospect Name:* ' + this.booking.name.trim(),
+                  '📱 *WhatsApp Link:* ' + this.booking.whatsapp.trim(),
+                  '📅 *Requested Date:* ' + this.booking.tourDate,
+                  '⏱️ *Preferred Window:* ' + this.booking.tourTime.toUpperCase(),
+                  '🔑 *Target Unit File:* ' + targetUnitLabel,
+                  '💰 *Target Rate Matrix:* ' + premiumRateStr,
                   '',
-                  '💬 *Directives:* ' + (this.booking.notes.trim() || 'Requesting full allocation paperwork.')
+                  '💬 *Directives:* ' + (this.booking.notes.trim() || 'Looking forward to viewing the spaces!')
               ].join('\n');
 
               window.open('https://wa.me/' + WHATSAPP_NUMBER + '?text=' + encodeURIComponent(waText), '_blank');
@@ -174,7 +172,7 @@
                 </div>
                 <div>
                     <span class="heading text-white font-extrabold text-sm tracking-wider block">JAMIE HOMES</span>
-                    <span class="text-[#10B981] text-[9px] font-bold tracking-[0.2em] uppercase block">Structural Excellence</span>
+                    <span class="text-[#10B981] text-[9px] font-bold tracking-[0.2em] uppercase block">Contemporary Serviced Living</span>
                 </div>
             </div>
 
@@ -194,139 +192,205 @@
     <!-- DEVELOPER SHOWCASE HERO BANNER -->
     <div class="relative bg-[#0F1612] overflow-hidden border-b border-[#14221B]">
         <div class="absolute inset-0">
-            <img :src="projects[activeProject].banner" alt="Jamie Homes Premium Developments" class="w-full h-full object-cover filter brightness-[0.25] transition duration-700 transform scale-100" />
+            <img src="https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=1200&q=80" alt="Jamie Homes Contemporary Apartments" class="w-full h-full object-cover filter brightness-[0.25]" />
         </div>
         <div class="absolute inset-0 bg-gradient-to-t from-[#0A0F0C] via-transparent to-transparent"></div>
         
         <div class="relative max-w-6xl mx-auto px-4 py-16 md:py-24">
-            <span class="text-[#10B981] text-xs font-bold uppercase tracking-[0.3em] bg-[#10B981]/10 border border-[#10B981]/20 px-3 py-1 rounded-full">Interactive Asset Matrix</span>
-            
-            <!-- Project Selection Toggles -->
-            <div class="flex flex-wrap gap-2 mt-6 mb-4">
-                <button @click="activeProject = 'crestview'; selectedUnit = null"
-                        :class="activeProject === 'crestview' ? 'bg-[#10B981] text-[#0A0F0C] font-bold' : 'bg-[#0A0F0C]/80 text-white border border-[#14221B]'"
-                        class="px-4 py-2 rounded-xl text-xs uppercase tracking-wider transition">
-                    Crestview Residences
-                </button>
-                <button @click="activeProject = 'savannah'; selectedUnit = null"
-                        :class="activeProject === 'savannah' ? 'bg-[#10B981] text-[#0A0F0C] font-bold' : 'bg-[#0A0F0C]/80 text-white border border-[#14221B]'"
-                        class="px-4 py-2 rounded-xl text-xs uppercase tracking-wider transition">
-                    Savannah Eco-Villas
-                </button>
-            </div>
-
-            <h1 class="heading text-3xl md:text-5xl font-black text-white max-w-3xl leading-tight" x-text="projects[activeProject].name"></h1>
-            <p class="text-xs text-gray-400 mt-2 font-mono flex items-center gap-1.5">
-                <svg class="h-3.5 w-3.5 text-[#10B981]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                <span x-text="projects[activeProject].location"></span>
+            <span class="text-[#10B981] text-xs font-bold uppercase tracking-[0.3em] bg-[#10B981]/10 border border-[#10B981]/20 px-3 py-1 rounded-full">Fully Managed Rental Portfolios</span>
+            <h1 class="heading text-3xl md:text-5xl font-black text-white max-w-3xl leading-tight mt-4">
+                Contemporary Multi-Unit Residential Building
+            </h1>
+            <p class="text-sm text-gray-400 mt-4 max-w-2xl leading-relaxed">
+                An ultra-modern architecture engineered for high-yield short-term stays and premium rentals. Featuring fully furnished open-plan configurations, premium fitted kitchens, and private skyline balconies.
             </p>
-            <p class="text-sm text-gray-400 mt-4 max-w-2xl leading-relaxed" x-text="projects[activeProject].description"></p>
         </div>
     </div>
 
-    <!-- MAIN GRID CONTAINER -->
+    <!-- LIVE SPECIFICATIONS BAR -->
+    <section class="border-b border-[#14221B] bg-[#0E1410] py-6">
+        <div class="max-w-6xl mx-auto px-4 grid grid-cols-2 md:grid-cols-4 gap-6 text-center md:text-left">
+            <div>
+                <span class="text-[10px] font-mono uppercase text-gray-500 tracking-wider block">Property Design</span>
+                <span class="text-xs font-bold text-white mt-1 block">Contemporary Serviced Apartments</span>
+            </div>
+            <div>
+                <span class="text-[10px] font-mono uppercase text-gray-500 tracking-wider block">Core Configurations</span>
+                <span class="text-xs font-bold text-white mt-1 block">Open-Plan Living & Fitted Kitchens</span>
+            </div>
+            <div>
+                <span class="text-[10px] font-mono uppercase text-gray-500 tracking-wider block">Key Amenities</span>
+                <span class="text-xs font-bold text-white mt-1 block">Private Balconies & Smart Stays</span>
+            </div>
+            <div>
+                <span class="text-[10px] font-mono uppercase text-gray-500 tracking-wider block">Management Structure</span>
+                <span class="text-xs font-bold text-emerald-400 mt-1 block">Fully Furnished Asset Allocation</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- MAIN BUILDING MAP & TRACKER ENGINE -->
     <main class="max-w-6xl mx-auto px-4 py-12">
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             
-            <!-- LEFT COLUMN: REAL-TIME INVENTORY TRACKER -->
-            <div class="lg:col-span-2 space-y-4">
-                <div class="flex items-center justify-between border-b border-[#14221B] pb-4">
-                    <h3 class="heading font-bold text-white text-base tracking-wide uppercase">Unit Allocation Status</h3>
+            <!-- LEFT COLUMN: INTERACTIVE MAP & FLOORS -->
+            <div class="lg:col-span-2 space-y-8">
+                
+                <!-- INTERACTIVE BUILDING MAP (FLOOR SELECTOR) -->
+                <div class="bg-[#0F1612] border border-[#14221B] rounded-2xl p-6">
+                    <h3 class="heading font-bold text-white text-sm uppercase tracking-wider text-[#10B981] mb-2">Interactive Building Map</h3>
+                    <p class="text-xs text-gray-400 mb-6">Select a residential floor plate to survey live availability matrices.</p>
                     
-                    <!-- Availability Filters -->
-                    <div class="flex gap-1 bg-[#0F1612] border border-[#14221B] p-0.5 rounded-lg text-[10px]">
-                        <button @click="selectedFilter = 'all'" :class="selectedFilter === 'all' ? 'bg-[#14221B] text-[#10B981] font-bold' : 'text-gray-400'" class="px-2 py-1 rounded">ALL</button>
-                        <button @click="selectedFilter = 'available'" :class="selectedFilter === 'available' ? 'bg-[#14221B] text-[#10B981] font-bold' : 'text-gray-400'" class="px-2 py-1 rounded">AVAILABLE</button>
-                        <button @click="selectedFilter = 'reserved'" :class="selectedFilter === 'reserved' ? 'bg-[#14221B] text-[#10B981] font-bold' : 'text-gray-400'" class="px-2 py-1 rounded">RESERVED</button>
+                    <!-- Vertical Stack Schematic Visual -->
+                    <div class="space-y-2 max-w-md mx-auto">
+                        <button @click="activeFloor = '3'; selectedUnit = null"
+                                :class="activeFloor === '3' ? 'border-[#10B981] bg-[#10B981]/10 text-[#10B981]' : 'border-[#14221B] bg-[#0A0F0C] text-gray-400'"
+                                class="w-full p-4 rounded-xl border font-bold text-xs uppercase tracking-widest transition flex justify-between items-center">
+                            <span>LEVEL 03 — Executive Suites</span>
+                            <span class="text-[10px] px-2 py-0.5 rounded bg-[#14221B]">Penthouses</span>
+                        </button>
+                        <button @click="activeFloor = '2'; selectedUnit = null"
+                                :class="activeFloor === '2' ? 'border-[#10B981] bg-[#10B981]/10 text-[#10B981]' : 'border-[#14221B] bg-[#0A0F0C] text-gray-400'"
+                                class="w-full p-4 rounded-xl border font-bold text-xs uppercase tracking-widest transition flex justify-between items-center">
+                            <span>LEVEL 02 — Premium Rentals</span>
+                            <span class="text-[10px] px-2 py-0.5 rounded bg-[#14221B]">Serviced</span>
+                        </button>
+                        <button @click="activeFloor = '1'; selectedUnit = null"
+                                :class="activeFloor === '1' ? 'border-[#10B981] bg-[#10B981]/10 text-[#10B981]' : 'border-[#14221B] bg-[#0A0F0C] text-gray-400'"
+                                class="w-full p-4 rounded-xl border font-bold text-xs uppercase tracking-widest transition flex justify-between items-center">
+                            <span>LEVEL 01 — Mid-Tier Stays</span>
+                            <span class="text-[10px] px-2 py-0.5 rounded bg-[#14221B]">Residences</span>
+                        </button>
                     </div>
                 </div>
 
-                <!-- DYNAMIC INVENTORY LIST -->
-                <div class="space-y-3">
-                    <template x-for="unit in getFilteredUnits()" :key="unit.id">
-                        <div :class="selectedUnit?.id === unit.id ? 'border-[#10B981] bg-[#10B981]/5' : 'border-[#14221B] bg-[#0F1612]'"
-                             @click="selectUnitForInquiry(unit)"
-                             :class="unit.status === 'available' ? 'cursor-pointer hover:border-gray-700' : 'opacity-60 cursor-not-allowed'"
-                             class="p-4 rounded-xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                            
-                            <div class="flex items-start gap-4">
-                                <!-- Status Marker Block -->
-                                <div class="w-2.5 h-2.5 rounded-full mt-1.5 flex-shrink-0"
-                                     :class="{
-                                         'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]': unit.status === 'available',
-                                         'bg-amber-500': unit.status === 'reserved',
-                                         'bg-rose-500': unit.status === 'sold'
-                                     }">
-                                </div>
-                                <div>
-                                    <div class="flex items-center gap-2">
-                                        <span class="font-mono text-xs font-bold text-white tracking-wider bg-[#14221B] px-2 py-0.5 rounded" x-text="unit.id"></span>
-                                        <span class="text-xs font-semibold text-gray-300" x-text="unit.type + ' — ' + unit.beds"></span>
-                                    </div>
-                                    <div class="flex gap-3 text-[11px] text-gray-500 mt-1 font-mono">
-                                        <span>SIZE: <strong class="text-gray-400" x-text="unit.size"></strong></span>
-                                        <span class="uppercase">STATUS: 
-                                            <strong :class="{ 'text-emerald-400': unit.status === 'available', 'text-amber-400': unit.status === 'reserved', 'text-rose-400': unit.status === 'sold' }" x-text="unit.status"></strong>
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Pricing Configuration Area -->
-                            <div class="sm:text-right flex sm:flex-col justify-between items-center sm:items-end border-t sm:border-0 border-[#14221B]/60 pt-2 sm:pt-0">
-                                <span class="text-[10px] uppercase font-mono text-gray-500 tracking-wider">Asset Valuation</span>
-                                <span class="text-sm font-bold font-mono text-[#10B981]" x-text="formatCurrency(unit.priceUSD)"></span>
-                            </div>
+                <!-- DYNAMIC INVENTORY LIST FOR SELECTED FLOOR -->
+                <div class="space-y-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#14221B] pb-4">
+                        <div>
+                            <h3 class="heading font-bold text-white text-base tracking-wide uppercase" x-text="buildingInventory[activeFloor].floorName"></h3>
+                            <p class="text-xs text-gray-500 mt-0.5">Click any available suite layout card to target for your site tour.</p>
                         </div>
-                    </template>
+                        
+                        <!-- Availability Filters -->
+                        <div class="flex gap-1 bg-[#0F1612] border border-[#14221B] p-0.5 rounded-lg text-[10px] self-start sm:self-center">
+                            <button @click="selectedFilter = 'all'" :class="selectedFilter === 'all' ? 'bg-[#14221B] text-[#10B981] font-bold' : 'text-gray-400'" class="px-2 py-1 rounded">ALL SUITES</button>
+                            <button @click="selectedFilter = 'available'" :class="selectedFilter === 'available' ? 'bg-[#14221B] text-[#10B981] font-bold' : 'text-gray-400'" class="px-2 py-1 rounded">AVAILABLE</button>
+                            <button @click="selectedFilter = 'reserved'" :class="selectedFilter === 'reserved' ? 'bg-[#14221B] text-[#10B981] font-bold' : 'text-gray-400'" class="px-2 py-1 rounded">RESERVED</button>
+                        </div>
+                    </div>
+
+                    <!-- Cards -->
+                    <div class="space-y-3">
+                        <template x-for="unit in getFilteredUnits()" :key="unit.id">
+                            <div :class="selectedUnit?.id === unit.id ? 'border-[#10B981] bg-[#10B981]/5' : 'border-[#14221B] bg-[#0F1612]'"
+                                 @click="selectUnitForTour(unit)"
+                                 :class="unit.status === 'available' ? 'cursor-pointer hover:border-gray-700' : 'opacity-60 cursor-not-allowed'"
+                                 class="p-4 rounded-xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                
+                                <div class="space-y-2">
+                                    <div class="flex items-start gap-3">
+                                        <div class="w-2.5 h-2.5 rounded-full mt-1.5 flex-shrink-0"
+                                             :class="{
+                                                 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]': unit.status === 'available',
+                                                 'bg-amber-500': unit.status === 'reserved',
+                                                 'bg-rose-500': unit.status === 'sold'
+                                             }">
+                                        </div>
+                                        <div>
+                                            <div class="flex items-center gap-2 flex-wrap">
+                                                <span class="font-mono text-xs font-bold text-white tracking-wider bg-[#14221B] px-2 py-0.5 rounded" x-text="unit.id"></span>
+                                                <span class="text-xs font-semibold text-gray-200" x-text="unit.type + ' — ' + unit.beds"></span>
+                                                <span class="text-[10px] font-mono text-gray-500" x-text="'(' + unit.size + ')'"></span>
+                                            </div>
+                                            <p class="text-[11px] text-gray-400 mt-1" x-text="unit.features"></p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Value Component -->
+                                <div class="sm:text-right flex sm:flex-col justify-between items-center sm:items-end border-t sm:border-0 border-[#14221B]/60 pt-2 sm:pt-0 flex-shrink-0">
+                                    <span class="text-[9px] uppercase font-mono text-gray-500 tracking-wider">Premium Target Index</span>
+                                    <span class="text-xs font-bold font-mono text-[#10B981]">
+                                        <span class="text-sm" x-text="formatCurrency(unit.priceUSD)"></span> / <span x-text="unit.billing"></span>
+                                    </span>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
                 </div>
+
+                <!-- GEOGRAPHIC LOCATION LOCATION VECTOR -->
+                <div class="bg-[#0F1612] border border-[#14221B] rounded-2xl p-6">
+                    <h3 class="heading font-bold text-white text-sm uppercase tracking-wider text-[#10B981] mb-2">Location Coordinates</h3>
+                    <p class="text-xs text-gray-400 mb-4">Strategically positioned inside Kampala's elite, premium short-term rental corridor ensuring high-density international corporate occupancy profiles.</p>
+                    
+                    <!-- Clean Minimalist Geometric Map Blueprint Placeholder -->
+                    <div class="w-full h-44 bg-[#0A0F0C] rounded-xl border border-[#14221B] relative overflow-hidden flex items-center justify-center text-center p-4">
+                        <div class="absolute inset-0 opacity-10 bg-[radial-gradient(#10B981_1px,transparent_1px)] [background-size:16px_16px]"></div>
+                        <div class="relative z-10">
+                            <span class="text-[10px] font-mono uppercase bg-[#10B981]/10 border border-[#10B981]/30 px-2 py-1 rounded text-[#10B981]">Kampala Prime Central District</span>
+                            <p class="text-xs font-semibold text-white mt-2">Jamie Homes Luxury Tower Vector</p>
+                            <p class="text-[11px] text-gray-500 mt-0.5">High-Accessibility Logistics Corridor</p>
+                        </div>
+                    </div>
+                </div>
+
             </div>
 
-            <!-- RIGHT COLUMN: HIGH-INTENT LEAD INQUIRY ENGINE -->
-            <div id="lead-inquiry-engine" class="space-y-6">
+            <!-- RIGHT COLUMN: SCHEDULE PRIVATE SITE TOUR ENGINE -->
+            <div id="tour-scheduler-engine" class="space-y-6">
                 <div class="bg-[#0F1612] border border-[#14221B] rounded-2xl p-6 relative overflow-hidden">
-                    <h3 class="heading text-white font-bold text-sm uppercase tracking-wider mb-2">Acquisition Pipeline</h3>
-                    <p class="text-xs text-gray-400 mb-4">Lock in real-time unit data or request a comprehensive structural prospectus package.</p>
+                    <div class="absolute top-0 right-0 bg-[#10B981]/10 text-[#10B981] text-[9px] tracking-widest uppercase font-bold px-3 py-1 rounded-bl-lg">
+                        Private Access
+                    </div>
                     
-                    <!-- Selected Unit Profile Dynamic Notice -->
+                    <h3 class="heading text-white font-bold text-sm uppercase tracking-wider mb-2">Schedule Private Site Tour</h3>
+                    <p class="text-xs text-gray-400 mb-4">Book an exclusive structural walkthrough of the multi-unit building and verify open-plan design finishes directly.</p>
+                    
+                    <!-- Target Space Display Dynamic Matrix -->
                     <div class="bg-[#0A0F0C] border border-[#14221B] rounded-xl p-3 mb-4 text-xs">
-                        <span class="text-[10px] font-mono uppercase text-gray-500 tracking-wider block">Target Portfolio Allocation</span>
-                        <div class="mt-1 flex items-center justify-between">
-                            <span class="font-bold text-white" x-text="selectedUnit ? 'Unit Asset ' + selectedUnit.id : 'General Portfolio Briefing'"></span>
-                            <span class="font-mono text-[#10B981] font-semibold" x-text="selectedUnit ? formatCurrency(selectedUnit.priceUSD) : 'Flexible Capital'"></span>
+                        <span class="text-[10px] font-mono uppercase text-gray-500 tracking-wider block">Selected Space Allocation</span>
+                        <div class="mt-1 flex items-center justify-between flex-wrap gap-2">
+                            <span class="font-bold text-white" x-text="selectedUnit ? 'Suite Asset ' + selectedUnit.id : 'Full Building Infrastructure Tour'"></span>
+                            <span class="font-mono text-[#10B981] font-semibold text-[11px]" x-text="selectedUnit ? formatCurrency(selectedUnit.priceUSD) + ' / ' + selectedUnit.billing : 'All Suite Layouts'"></span>
                         </div>
-                        <p x-show="selectedUnit" class="text-[10px] text-gray-400 mt-1.5" x-cloak>
-                            Clicking submit will pin this exact unit to your buyer record and send the configuration directly to our office.
-                        </p>
                     </div>
 
-                    <!-- Pipeline Form -->
-                    <form x-show="!isSubmitted" @submit.prevent="handleFormSubmit()" class="space-y-3">
+                    <!-- Scheduler Form Pipeline -->
+                    <form x-show="!isSubmitted" @submit.prevent="handleTourSchedule()" class="space-y-3">
                         <div>
-                            <label for="investor_name" class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Your Full Name</label>
-                            <input type="text" id="investor_name" required x-model="booking.name" placeholder="Hon. Arthur Mason"
+                            <label for="tour_name" class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Prospect Identity Name</label>
+                            <input type="text" id="tour_name" required x-model="booking.name" placeholder="Esq. Christian Vance"
                                    class="w-full bg-[#0A0F0C] border border-[#14221B] rounded-xl p-3 text-xs text-white placeholder-gray-700 focus:outline-none focus:border-[#10B981]" />
                         </div>
 
                         <div>
-                            <label for="investor_phone" class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Active WhatsApp Connection</label>
-                            <input type="tel" id="investor_phone" required x-model="booking.whatsapp" placeholder="+256 700 000000"
+                            <label for="tour_phone" class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Active WhatsApp Coordinates</label>
+                            <input type="tel" id="tour_phone" required x-model="booking.whatsapp" placeholder="+256 700 000000"
                                    class="w-full bg-[#0A0F0C] border border-[#14221B] rounded-xl p-3 text-xs text-white placeholder-gray-700 focus:outline-none focus:border-[#10B981]" />
                         </div>
 
-                        <div>
-                            <label for="investment_timeframe" class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Capital Deployment Horizon</label>
-                            <select id="investment_timeframe" x-model="booking.timeframe"
-                                    class="w-full bg-[#0A0F0C] border border-[#14221B] rounded-xl p-3 text-xs text-white focus:outline-none focus:border-[#10B981]">
-                                <option value="immediate">Immediate Allocation (< 30 Days)</option>
-                                <option value="quarterly">Within This Quarter</option>
-                                <option value="speculative">Exploring Capital Layout Options</option>
-                            </select>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label for="tour_date" class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Tour Date</label>
+                                <input type="date" id="tour_date" required x-model="booking.tourDate"
+                                       class="w-full bg-[#0A0F0C] border border-[#14221B] rounded-xl p-3 text-xs text-white focus:outline-none focus:border-[#10B981]" />
+                            </div>
+                            <div>
+                                <label for="tour_time" class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Time Window</label>
+                                <select id="tour_time" x-model="booking.tourTime"
+                                        class="w-full bg-[#0A0F0C] border border-[#14221B] rounded-xl p-3 text-xs text-white focus:outline-none focus:border-[#10B981]">
+                                    <option value="morning">Morning (09:00 - 12:00)</option>
+                                    <option value="afternoon">Afternoon (13:00 - 16:00)</option>
+                                    <option value="evening">Late Window (16:00 - 18:00)</option>
+                                </select>
+                            </div>
                         </div>
 
                         <div>
-                            <label for="investor_notes" class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Supplementary Directives (Optional)</label>
-                            <textarea id="investor_notes" x-model="booking.notes" rows="3" placeholder="Financing terms required, corporate entity purchase details..."
+                            <label for="tour_notes" class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Special Directives (Optional)</label>
+                            <textarea id="tour_notes" x-model="booking.notes" rows="2" placeholder="Requesting corporate multi-unit purchase documentation..."
                                       class="w-full bg-[#0A0F0C] border border-[#14221B] rounded-xl p-3 text-xs text-white placeholder-gray-700 focus:outline-none focus:border-[#10B981] resize-none"></textarea>
                         </div>
 
@@ -334,27 +398,27 @@
 
                         <button type="submit" :disabled="loading"
                                 class="w-full bg-[#10B981] hover:bg-[#059669] text-[#0A0F0C] font-bold py-3 rounded-xl tracking-widest text-[10px] uppercase transition flex items-center justify-center gap-2">
-                            <span x-show="!loading">Initialize Allocation Protocol</span>
+                            <span x-show="!loading">Initialize Tour Protocol</span>
                             <span x-show="loading" class="flex items-center gap-2" x-cloak>
                                 <svg class="animate-spin h-3.5 w-3.5" viewBox="0 0 24 24" fill="none">
                                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
                                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
                                 </svg>
-                                Routing Acquisition File...
+                                Syncing Appointment Grid...
                             </span>
                         </button>
                     </form>
 
-                    <!-- Success State Screen -->
+                    <!-- Verification State Screen -->
                     <div x-show="isSubmitted" class="text-center py-6" x-cloak>
                         <div class="h-10 w-10 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded-full flex items-center justify-center mx-auto mb-3">✓</div>
-                        <h4 class="heading text-white font-bold text-sm">Asset Secured Securely</h4>
+                        <h4 class="heading text-white font-bold text-sm">Site Walkthrough Synced</h4>
                         <p class="text-xs text-gray-400 mt-2 px-2">
-                            The portfolio parameters are securely locked into your client profile. Our primary representative is initiating direct contact to present closing structures.
+                            Your walkthrough file is matched to our property manager. The WhatsApp handshake link will now instantly establish your direct booking entry.
                         </p>
-                        <button @click="isSubmitted = false; selectedUnit = null; booking = { name: '', whatsapp: '', timeframe: 'immediate', notes: '' }"
+                        <button @click="isSubmitted = false; selectedUnit = null; booking = { name: '', whatsapp: '', tourDate: '', tourTime: 'morning', notes: '' }"
                                 class="mt-4 text-[10px] uppercase font-bold tracking-widest text-[#10B981] hover:text-white transition">
-                            Map Alternative Property Asset
+                            Schedule Alternative Tour Vector
                         </button>
                     </div>
                 </div>
